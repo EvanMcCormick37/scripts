@@ -22,6 +22,7 @@ public class EnemyMovement : UbhMonoBehaviour
         {
             FindTarget();
         }
+        else
         {
             Move();
         }
@@ -55,7 +56,7 @@ public class EnemyMovement : UbhMonoBehaviour
 
         if (obstacles.Length == 0)
         {
-            Debug.Log("No obstacles.");
+            if (loggingEnabled) Debug.Log("No obstacles.");
             return dirToPlayer;
         }
 

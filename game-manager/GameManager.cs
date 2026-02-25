@@ -5,8 +5,6 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    public bool m_scaleToFit = false;
-
     [SerializeField] private GameObject m_playerInstance = null;
     [SerializeField] private GameObject m_titleScreen = null;
     [SerializeField] private GameObject m_winScreen = null;
@@ -52,7 +50,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         m_currentLevel = FindObjectOfType<Level>();
-        m_playerInstance = GameObject.FindGameObjectWithTag("K");
+        m_playerInstance = FindObjectOfType<KeyboardMovement>(true);
 
         if (m_currentLevel != null && m_playerInstance != null)
         {
@@ -82,6 +80,13 @@ public class GameManager : MonoBehaviour
                 GameStart();
             }
         }
+        // TEMP: Remove before shipping
+        // Press 1/2/3 to jump directly to that scene index
+        if (Keyboard.current.digit1Key.wasPressedThisFrame) GoToLevel(0);
+        if (Keyboard.current.digit2Key.wasPressedThisFrame) GoToLevel(1);
+        if (Keyboard.current.digit3Key.wasPressedThisFrame) GoToLevel(2);
+
+        if (loggingEnabled) Debug.Log($"Level Index: {m_currentLevelIndex}, Level: {m_currentLevel}, Player Instance: {m_playerInstance}, Playing: {m_isPlaying}");
     }
 
     private void GameStart()

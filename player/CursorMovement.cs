@@ -16,6 +16,7 @@ public class CursorMovement : UbhMonoBehaviour
     public Color fullColor = Color.red;
     public Color emptyColor = Color.black;
     private SpriteRenderer spriteRenderer;
+    public bool loggingEnabled;
 
     private Rigidbody2D rb;
     private Camera mainCam;
@@ -39,7 +40,7 @@ public class CursorMovement : UbhMonoBehaviour
         var keyboard = Keyboard.current;
         if (keyboard != null && keyboard.spaceKey.isPressed && currentFuel > 0 && rb.linearVelocity.magnitude < maxSpeed)
         {
-            Debug.Log($"C Speed: {rb.linearVelocity}");
+            if (loggingEnabled) Debug.Log($"C Speed: {rb.linearVelocity}");
             Swing();
             ConsumeFuel();
         }
@@ -98,10 +99,7 @@ public class CursorMovement : UbhMonoBehaviour
         currentFuel = Mathf.Max(currentFuel, 0);
         UpdateVisuals();
 
-        if (currentFuel <= 0)
-        {
-            Debug.Log("Out of fuel!");
-        }
+        if (loggingEnabled && currentFuel <= 0) Debug.Log("Out of fuel!");
     }
 
     public void AddFuel()
