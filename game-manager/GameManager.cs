@@ -30,7 +30,6 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         m_total_levels = SceneManager.sceneCountInBuildSettings;
         if (loggingEnabled) Debug.Log("GameManager Awake");
-        if (m_titleScreen != null) m_titleScreen.SetActive(true);
     }
 
     private void OnEnable()
@@ -67,8 +66,10 @@ public class GameManager : MonoBehaviour
         if (m_currentLevel != null && m_playerInstance != null)
         {
             m_currentLevel.Initialize(this);
-            GameStart();
         }
+
+        if (m_titleScreen != null) m_titleScreen.SetActive(true);
+        if (m_winScreen != null) m_winScreen.SetActive(false);
     }
 
     private void Update()
@@ -81,16 +82,13 @@ public class GameManager : MonoBehaviour
             if (m_playerInstance == null || !m_playerInstance.activeSelf)
                 GameOver();
         }
-        else
+        // Level-Switching Inputs Logic
+        if (m_titleScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame) GameStart();
+        if (m_winScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            {
-                if (loggingEnabled) Debug.Log("Starting Game...");
-                GameStart();
-            }
+            m_winScreen.SetActive(false);
+            NextLevel();
         }
-
-        // TEMP: Remove before shipping
         if (Keyboard.current.digit1Key.wasPressedThisFrame) GoToLevel(0);
         if (Keyboard.current.digit2Key.wasPressedThisFrame) GoToLevel(1);
         if (Keyboard.current.digit3Key.wasPressedThisFrame) GoToLevel(2);
@@ -110,30 +108,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void ShowWinScreen()
+    public void OnWin(Level level)
     {
         m_isPlaying = false;
 
         if (m_winScreen != null)
         {
             m_winScreen.SetActive(true);
-            StartCoroutine(WinSequenceDelay());
         }
-        else
-        {
-            // Test mode — no UI assigned
-            Debug.Log("[GameManager] Win condition met (test mode).");
-        }
-    }
-
-    private IEnumerator WinSequenceDelay()
-    {
-        yield return new WaitForSeconds(5);
-
-        if (m_currentLevelIndex + 1 < m_total_levels)
-            NextLevel();
-        else
-            EndRun();
     }
 
     public void EndRun()

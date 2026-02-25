@@ -26,7 +26,7 @@ public class ReactorCore : Level
     public override void Win()
     {
         CleanUp();
-        m_manager.ShowWinScreen();
+        m_manager.OnWin(this);
     }
     public override void CleanUp()
     {

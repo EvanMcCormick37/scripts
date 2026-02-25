@@ -83,7 +83,7 @@ public class Arena : Level
     public override void Win()
     {
         CleanUp();
-        m_manager.ShowWinScreen(); // Pass control back to the UI manager
+        m_manager.OnWin(this);
     }
 
     public override void CleanUp()

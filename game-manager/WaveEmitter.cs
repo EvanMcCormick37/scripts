@@ -65,7 +65,7 @@ public class WaveEmitter : Level
     {
         m_levelComplete = true;
         CleanUp();
-        m_manager.ShowWinScreen();
+        m_manager.OnWin(this);
     }
 
     public override void CleanUp()

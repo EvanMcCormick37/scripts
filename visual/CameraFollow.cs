@@ -9,6 +9,8 @@ public class CameraFollow : MonoBehaviour
     public float smoothTime = 0.1f;
     private Vector3 currentVelocity = Vector3.zero;
 
+    public bool loggingEnabled = false;
+
     [Header("Zoom Settings")]
     public float minZoom = 8f;
     public float maxZoom = 16f;
@@ -32,15 +34,18 @@ public class CameraFollow : MonoBehaviour
         }
 
         Vector3 midpoint = Vector3.Lerp(targetA.position, targetB.position, bias);
+        if (loggingEnabled) Debug.Log($"CameraFollow Midpoint: {midpoint}");
 
-        Vector3 targetPos = new Vector3(midpoint.x, midpoint.y, transform.position.z);
+        Vector3 targetPos = new Vector3(midpoint.x, midpoint.y, cam.gameObject.transform.position.z);
+        if (loggingEnabled) Debug.Log($"CameraFollow Targetpos: {midpoint}");
 
-        transform.position = Vector3.SmoothDamp(
-            transform.position,
+        cam.gameObject.transform.position = Vector3.SmoothDamp(
+            cam.gameObject.transform.position,
             targetPos,
             ref currentVelocity,
             smoothTime
         );
+        if (loggingEnabled) Debug.Log($"CameraFollow new position: {cam.gameObject.transform.position}");
 
         float distance = Vector2.Distance(targetA.position, targetB.position);
 
