@@ -83,8 +83,8 @@ public class GameManager : MonoBehaviour
                 GameOver();
         }
         // Level-Switching Inputs Logic
-        if (m_titleScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame) GameStart();
-        if (m_winScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (m_titleScreen && m_titleScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame) GameStart();
+        if (m_winScreen && m_winScreen.activeSelf && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             m_winScreen.SetActive(false);
             NextLevel();

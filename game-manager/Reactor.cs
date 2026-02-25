@@ -9,18 +9,12 @@ public class ReactorCore : Level
     public override void StartLevel()
     {
         player.transform.position = playerSpawn.position;
+        core.transform.position = Vector2.zero;
         player.SetActive(true);
-        Instantiate(core, Vector2.zero, Quaternion.identity);
-        Debug.Log("Core Instantiated!");
-
     }
 
     public override void UpdateLevel()
     {
-        if (core == null)
-        {
-            Win();
-        }
     }
 
     public override void Win()
@@ -33,10 +27,5 @@ public class ReactorCore : Level
         if (player != null) player.SetActive(false);
         StopAllCoroutines();
         if (UbhObjectPool.instance != null) UbhObjectPool.instance.ReleaseAllBullet();
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        foreach (GameObject enemy in enemies)
-        {
-            Destroy(enemy);
-        }
     }
 }

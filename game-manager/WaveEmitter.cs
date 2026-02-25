@@ -3,8 +3,12 @@
 public class WaveEmitter : Level
 {
     [SerializeField] private GameObject[] m_waves = null;
-    [SerializeField] private Transform spawnPoint = null;
+    [SerializeField] private Transform enemySpawn = null;
     [SerializeField] private bool loggingEnabled = false;
+
+    [SerializeField] private Transform playerSpawn;
+    [SerializeField] private GameObject player;
+
 
     private int m_currentWaveIndex = 0;
     private GameObject m_activeWaveObject = null;
@@ -12,12 +16,12 @@ public class WaveEmitter : Level
 
     public override void StartLevel()
     {
-        if (loggingEnabled)
-        {
-            Debug.Log($"Starting Level!");
-        }
+        if (loggingEnabled) Debug.Log($"Starting Level!");
         m_currentWaveIndex = 0;
         m_levelComplete = false;
+
+        player.transform.position = playerSpawn.position;
+        player.SetActive(true);
 
         if (m_waves != null && m_waves.Length > 0)
         {
@@ -56,7 +60,7 @@ public class WaveEmitter : Level
     private void SpawnNextWave()
     {
         GameObject next_wave = m_waves[m_currentWaveIndex];
-        Vector2 next_spawn = (spawnPoint != null) ? spawnPoint.position : next_wave.transform.position;
+        Vector2 next_spawn = (enemySpawn != null) ? enemySpawn.position : next_wave.transform.position;
         m_activeWaveObject = Instantiate(next_wave, next_spawn, Quaternion.identity);
         if (loggingEnabled) Debug.Log($"Spawning Wave at {next_spawn}!");
     }
@@ -75,5 +79,6 @@ public class WaveEmitter : Level
             Destroy(m_activeWaveObject);
         }
         if (UbhObjectPool.instance != null) UbhObjectPool.instance.ReleaseAllBullet();
+        player.SetActive(false);
     }
 }
