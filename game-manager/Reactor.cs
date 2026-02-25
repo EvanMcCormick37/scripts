@@ -19,7 +19,6 @@ public class ReactorCore : Level
     {
         if (core == null)
         {
-            Debug.Log("Uh oh...");
             Win();
         }
     }

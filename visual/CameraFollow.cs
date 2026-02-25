@@ -6,7 +6,7 @@ public class CameraFollow : MonoBehaviour
     public Transform targetB;
 
     [Header("Movement Settings")]
-    public float smoothTime = 0.15f;
+    public float smoothTime = 0.1f;
     private Vector3 currentVelocity = Vector3.zero;
 
     [Header("Zoom Settings")]
@@ -14,6 +14,7 @@ public class CameraFollow : MonoBehaviour
     public float maxZoom = 16f;
     public float zoomSensitivity = 0.5f;
     public float zoomSpeed = 5f;
+    public float bias = 0.5f;
 
     public Camera cam;
 
@@ -30,7 +31,7 @@ public class CameraFollow : MonoBehaviour
             if (targetA == null || targetB == null) return;
         }
 
-        Vector3 midpoint = (targetA.position + targetB.position) / 2f;
+        Vector3 midpoint = Vector3.Lerp(targetA.position, targetB.position, bias);
 
         Vector3 targetPos = new Vector3(midpoint.x, midpoint.y, transform.position.z);
 
@@ -48,7 +49,6 @@ public class CameraFollow : MonoBehaviour
         cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, targetOrthoSize, Time.deltaTime * zoomSpeed);
     }
 
-    // New Function to find players dynamically
     void FindTargets()
     {
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");

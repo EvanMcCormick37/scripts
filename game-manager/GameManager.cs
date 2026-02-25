@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿// GameManager.cs
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -9,12 +10,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject m_titleScreen = null;
     [SerializeField] private GameObject m_winScreen = null;
     [SerializeField] private bool loggingEnabled = false;
+    [SerializeField] public bool restartLevelOnDeath = false;
 
     private int m_currentLevelIndex = 0;
     private Level m_currentLevel = null;
-
     private int m_total_levels;
-
     private bool m_isPlaying = false;
 
     public static GameManager Instance { get; private set; }
@@ -29,11 +29,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         m_total_levels = SceneManager.sceneCountInBuildSettings;
-    }
-
-    private void Start()
-    {
-        if (loggingEnabled) Debug.Log("GameManager Started");
+        if (loggingEnabled) Debug.Log("GameManager Awake");
         if (m_titleScreen != null) m_titleScreen.SetActive(true);
     }
 
@@ -47,10 +43,26 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    // Called by Level.Bootstrap() when no real GameManager exists in the scene.
+    // Finds the player, wires up the level, and starts immediately.
+    public void InitializeForTesting(Level level)
+    {
+        restartLevelOnDeath = true;
+        m_currentLevel = level;
+        m_playerInstance = FindObjectOfType<KeyboardMovement>(true)?.gameObject;
+
+        if (m_playerInstance == null)
+            Debug.LogWarning("[GameManager] Bootstrap: No KeyboardMovement found — player death detection will not work.");
+
+        GameStart();
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         m_currentLevel = FindObjectOfType<Level>();
-        m_playerInstance = FindObjectOfType<KeyboardMovement>(true);
+        m_playerInstance = FindObjectOfType<KeyboardMovement>(true)?.gameObject;
+
+        if (loggingEnabled) Debug.Log($"[GameManager] Scene loaded: {scene.name} | Level: {m_currentLevel != null} | Player: {m_playerInstance != null}");
 
         if (m_currentLevel != null && m_playerInstance != null)
         {
@@ -64,29 +76,24 @@ public class GameManager : MonoBehaviour
         if (m_isPlaying)
         {
             if (m_currentLevel != null)
-            {
                 m_currentLevel.UpdateLevel();
-            }
-            // FIX 5: .active is deprecated, use .activeSelf
+
             if (m_playerInstance == null || !m_playerInstance.activeSelf)
-            {
                 GameOver();
-            }
         }
         else
         {
             if (Keyboard.current.spaceKey.wasPressedThisFrame)
             {
+                if (loggingEnabled) Debug.Log("Starting Game...");
                 GameStart();
             }
         }
+
         // TEMP: Remove before shipping
-        // Press 1/2/3 to jump directly to that scene index
         if (Keyboard.current.digit1Key.wasPressedThisFrame) GoToLevel(0);
         if (Keyboard.current.digit2Key.wasPressedThisFrame) GoToLevel(1);
         if (Keyboard.current.digit3Key.wasPressedThisFrame) GoToLevel(2);
-
-        if (loggingEnabled) Debug.Log($"Level Index: {m_currentLevelIndex}, Level: {m_currentLevel}, Player Instance: {m_playerInstance}, Playing: {m_isPlaying}");
     }
 
     private void GameStart()
@@ -106,8 +113,17 @@ public class GameManager : MonoBehaviour
     public void ShowWinScreen()
     {
         m_isPlaying = false;
-        if (m_winScreen != null) m_winScreen.SetActive(true);
-        StartCoroutine(WinSequenceDelay());
+
+        if (m_winScreen != null)
+        {
+            m_winScreen.SetActive(true);
+            StartCoroutine(WinSequenceDelay());
+        }
+        else
+        {
+            // Test mode — no UI assigned
+            Debug.Log("[GameManager] Win condition met (test mode).");
+        }
     }
 
     private IEnumerator WinSequenceDelay()
@@ -115,28 +131,35 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(5);
 
         if (m_currentLevelIndex + 1 < m_total_levels)
-        {
             NextLevel();
-        }
         else
-        {
-            GameOver();
-        }
+            EndRun();
+    }
+
+    public void EndRun()
+    {
+        m_isPlaying = false;
+        if (m_playerInstance != null) m_playerInstance.SetActive(false);
+        if (m_currentLevel != null) m_currentLevel.CleanUp();
+        if (m_winScreen != null) m_winScreen.SetActive(false);
+        if (m_titleScreen != null) m_titleScreen.SetActive(true);
     }
 
     public void GameOver()
     {
         m_isPlaying = false;
-        if (m_currentLevel != null) m_currentLevel.CleanUp();
         if (m_playerInstance != null) m_playerInstance.SetActive(false);
         if (m_winScreen != null) m_winScreen.SetActive(false);
         if (m_titleScreen != null) m_titleScreen.SetActive(true);
+        if (m_currentLevel != null) m_currentLevel.CleanUp();
+        if (restartLevelOnDeath)
+        {
+            if (loggingEnabled) Debug.Log("[GameManager] Player died — restarting level.");
+            GameStart();
+        }
     }
 
-    public bool IsPlaying()
-    {
-        return m_isPlaying;
-    }
+    public bool IsPlaying() => m_isPlaying;
 
     private void GoToLevel(int i)
     {
@@ -144,8 +167,5 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(i);
     }
 
-    private void NextLevel()
-    {
-        GoToLevel(m_currentLevelIndex + 1);
-    }
+    private void NextLevel() => GoToLevel(m_currentLevelIndex + 1);
 }
